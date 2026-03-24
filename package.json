@@ -1,7 +1,7 @@
 {
   "name": "signatur-input",
   "version": "1.0.0",
-  "description": "Email signature banner upload tool for sales staff",
+  "description": "Email signature banner upload tool for \"the Marketing Department\"",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
