@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signature Banner Upload</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      max-width: 620px;
+      width: 100%;
+      padding: 36px;
+    }
+    h1 {
+      font-size: 1.5rem;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+    }
+    .disclaimer {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      border-left: 4px solid #ffa000;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .disclaimer h2 {
+      font-size: 0.95rem;
+      color: #e65100;
+      margin-bottom: 10px;
+    }
+    .disclaimer ul {
+      list-style: none;
+      padding: 0;
+    }
+    .disclaimer li {
+      padding: 4px 0;
+      font-size: 0.9rem;
+      color: #333;
+    }
+    .disclaimer li::before {
+      content: "\2022";
+      color: #ffa000;
+      font-weight: bold;
+      display: inline-block;
+      width: 16px;
+    }
+    .disclaimer .ideal {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed #ffe082;
+      font-size: 0.85rem;
+      color: #666;
+    }
+    .upload-area {
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 16px;
+    }
+    .upload-area:hover, .upload-area.dragover {
+      border-color: #1976d2;
+      background: #e3f2fd;
+    }
+    .upload-area p {
+      color: #888;
+      font-size: 0.95rem;
+    }
+    .upload-area input[type="file"] {
+      display: none;
+    }
+    .preview-container {
+      display: none;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .preview-container img {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+    }
+    .preview-info {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 8px;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover:not(:disabled) {
+      background: #1565c0;
+    }
+    .btn:disabled {
+      background: #bbb;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .status.success {
+      display: block;
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      color: #2e7d32;
+    }
+    .status.error {
+      display: block;
+      background: #fbe9e7;
+      border: 1px solid #ef9a9a;
+      color: #c62828;
+    }
+    .status.loading {
+      display: block;
+      background: #e3f2fd;
+      border: 1px solid #90caf9;
+      color: #1565c0;
+    }
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #1565c0;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .validation-error {
+      color: #c62828;
+      font-size: 0.85rem;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Email Signature Banner Upload</h1>
+    <p class="subtitle">Upload a new banner image for the organization's email signature.</p>
+
+    <div class="disclaimer">
+      <h2>Image Requirements</h2>
+      <ul>
+        <li><strong>Format:</strong> PNG only</li>
+        <li><strong>Width:</strong> 1500 &ndash; 2000 pixels</li>
+        <li><strong>Height:</strong> 1000 &ndash; 1500 pixels</li>
+        <li><strong>Max file size:</strong> 10 MB</li>
+      </ul>
+      <p class="ideal">Ideal dimensions: 1771 &times; 1250 px at 300 DPI</p>
+    </div>
+
+    <div class="upload-area" id="dropZone">
+      <p>Click to select a PNG file or drag &amp; drop it here</p>
+      <input type="file" id="fileInput" accept="image/png">
+    </div>
+
+    <div class="validation-error" id="validationError"></div>
+
+    <div class="preview-container" id="previewContainer">
+      <img id="previewImage" alt="Preview">
+      <p class="preview-info" id="previewInfo"></p>
+    </div>
+
+    <button class="btn" id="uploadBtn" disabled>Upload Banner</button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImage = document.getElementById('previewImage');
+    const previewInfo = document.getElementById('previewInfo');
+    const statusEl = document.getElementById('status');
+    const validationError = document.getElementById('validationError');
+
+    const MIN_W = 1500, MAX_W = 2000, MIN_H = 1000, MAX_H = 1500;
+    const MAX_SIZE = 10 * 1024 * 1024;
+
+    let selectedFile = null;
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        handleFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        handleFile(fileInput.files[0]);
+      }
+    });
+
+    function handleFile(file) {
+      selectedFile = null;
+      uploadBtn.disabled = true;
+      previewContainer.style.display = 'none';
+      validationError.textContent = '';
+      statusEl.className = 'status';
+      statusEl.style.display = 'none';
+
+      // Check file type
+      if (!file.name.toLowerCase().endsWith('.png') || file.type !== 'image/png') {
+        validationError.textContent = 'Only PNG files are accepted.';
+        return;
+      }
+
+      // Check file size
+      if (file.size > MAX_SIZE) {
+        validationError.textContent = `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is 10 MB.`;
+        return;
+      }
+
+      // Check dimensions
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+
+        if (w < MIN_W || w > MAX_W) {
+          validationError.textContent = `Width must be ${MIN_W}\u2013${MAX_W}px. Yours: ${w}px.`;
+          return;
+        }
+        if (h < MIN_H || h > MAX_H) {
+          validationError.textContent = `Height must be ${MIN_H}\u2013${MAX_H}px. Yours: ${h}px.`;
+          return;
+        }
+
+        // Valid - show preview
+        selectedFile = file;
+        previewImage.src = URL.createObjectURL(file);
+        previewInfo.textContent = `${w} \u00d7 ${h} px \u2014 ${(file.size / 1024).toFixed(0)} KB`;
+        previewContainer.style.display = 'block';
+        uploadBtn.disabled = false;
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        validationError.textContent = 'Could not read image. Ensure it is a valid PNG.';
+      };
+      img.src = url;
+    }
+
+    uploadBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      uploadBtn.disabled = true;
+      statusEl.className = 'status loading';
+      statusEl.innerHTML = '<span class="spinner"></span> Uploading and transferring...';
+      statusEl.style.display = 'block';
+
+      const formData = new FormData();
+      formData.append('banner', selectedFile);
+
+      try {
+        const res = await fetch('/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          statusEl.className = 'status success';
+          statusEl.textContent = data.message;
+          selectedFile = null;
+          previewContainer.style.display = 'none';
+          fileInput.value = '';
+        } else {
+          statusEl.className = 'status error';
+          statusEl.textContent = data.error || 'Upload failed. Please try again.';
+          uploadBtn.disabled = false;
+        }
+      } catch (err) {
+        statusEl.className = 'status error';
+        statusEl.textContent = 'Network error. Please check your connection and try again.';
+        uploadBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
