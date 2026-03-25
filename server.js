@@ -35,6 +35,10 @@ try {
 const uploadsDir = path.join(__dirname, 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
 
+const HOST = process.env.HOST || '10.88.14.78';
+const PORT = parseInt(process.env.PORT, 10) || 3000;
+const BASE_URL = `http://${HOST}:${PORT}`;
+
 const app = express();
 
 // Security headers
@@ -46,7 +50,8 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "blob:", "data:"]
     }
-  }
+  },
+  strictTransportSecurity: false // no HTTPS on this server
 }));
 
 // Parse form bodies for login
@@ -63,7 +68,7 @@ app.use(session({
 // Auth middleware
 function requireAuth(req, res, next) {
   if (req.session && req.session.authenticated) return next();
-  res.redirect('/login');
+  res.redirect(`${BASE_URL}/login`);
 }
 
 // Login page (public)
@@ -76,19 +81,19 @@ app.post('/login', (req, res) => {
   const { username, password } = req.body;
   if (username === 'Sales' && password === 'Sales.2026') {
     req.session.authenticated = true;
-    return res.redirect('/');
+    return res.redirect(`${BASE_URL}/`);
   }
-  res.redirect('/login?error=1');
+  res.redirect(`${BASE_URL}/login?error=1`);
 });
 
 // Logout
 app.get('/logout', (req, res) => {
-  req.session.destroy(() => res.redirect('/login'));
+  req.session.destroy(() => res.redirect(`${BASE_URL}/login`));
 });
 
 // Serve static assets without auth, but block direct access to index.html
 app.use((req, res, next) => {
-  if (req.path === '/index.html') return res.redirect('/');
+  if (req.path === '/index.html') return res.redirect(`${BASE_URL}/`);
   next();
 });
 app.use(express.static(path.join(__dirname, 'public'), {
@@ -170,9 +175,6 @@ app.post('/upload', requireAuth, uploadLimiter, checkOrigin, (req, res, next) =>
     try { fs.unlinkSync(filePath); } catch (_) { /* already cleaned up */ }
   }
 });
-
-const HOST = process.env.HOST || '10.88.14.78';
-const PORT = parseInt(process.env.PORT, 10) || 3000;
 
 app.listen(PORT, HOST, () => {
   console.log(`Signature upload server running at http://${HOST}:${PORT}`);
