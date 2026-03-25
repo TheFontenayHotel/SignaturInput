@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Signature Banner Upload</title>
+  <title>Signatur Banner Upload</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -14,6 +14,47 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
+    }
+    .corner-btn {
+      position: fixed;
+      top: 16px;
+      z-index: 100;
+      font-size: 0.8rem;
+    }
+    .logout-btn {
+      left: 16px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      padding: 6px 16px;
+      color: #666;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .logout-btn:hover { background: #f5f5f5; color: #333; }
+    .lang-toggle {
+      right: 16px;
+      display: flex;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+      overflow: hidden;
+    }
+    .lang-toggle button {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #888;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    .lang-toggle button.active {
+      background: #1976d2;
+      color: #fff;
     }
     .card {
       background: #fff;
@@ -203,23 +244,30 @@
   </style>
 </head>
 <body>
+  <a href="/logout" class="corner-btn logout-btn" data-i18n="logout"></a>
+
+  <div class="corner-btn lang-toggle">
+    <button id="langDe" class="active" onclick="setLang('de')">DE</button>
+    <button id="langEn" onclick="setLang('en')">EN</button>
+  </div>
+
   <div class="card">
-    <h1>Email Signature Banner Upload</h1>
-    <p class="subtitle">Upload a new banner image for "the Marketing Department" email signature.</p>
+    <h1 data-i18n="title"></h1>
+    <p class="subtitle" data-i18n="subtitle"></p>
 
     <div class="disclaimer">
-      <h2>Image Requirements</h2>
+      <h2 data-i18n="reqTitle"></h2>
       <ul>
-        <li><strong>Format:</strong> PNG only</li>
-        <li><strong>Width:</strong> 1500 &ndash; 2000 pixels</li>
-        <li><strong>Height:</strong> 1000 &ndash; 1500 pixels</li>
-        <li><strong>Max file size:</strong> 10 MB</li>
+        <li><strong data-i18n="reqFormatLabel"></strong> <span data-i18n="reqFormat"></span></li>
+        <li><strong data-i18n="reqWidthLabel"></strong> <span data-i18n="reqWidth"></span></li>
+        <li><strong data-i18n="reqHeightLabel"></strong> <span data-i18n="reqHeight"></span></li>
+        <li><strong data-i18n="reqSizeLabel"></strong> <span data-i18n="reqSize"></span></li>
       </ul>
-      <p class="ideal">Ideal dimensions: 1771 &times; 1250 px at 300 DPI</p>
+      <p class="ideal" data-i18n="reqIdeal"></p>
     </div>
 
     <div class="upload-area" id="dropZone">
-      <p>Click to select a PNG file or drag &amp; drop it here</p>
+      <p data-i18n="dropText"></p>
       <input type="file" id="fileInput" accept="image/png">
     </div>
 
@@ -231,18 +279,112 @@
     </div>
 
     <div class="url-input-group">
-      <label for="bannerUrl">Banner Link URL <span class="optional">(optional)</span></label>
+      <label for="bannerUrl"><span data-i18n="urlLabel"></span> <span class="optional" data-i18n="urlOptional"></span></label>
       <input type="url" id="bannerUrl" placeholder="https://www.thefontenay.com/..." maxlength="2048">
-      <p class="url-hint">The URL opened when clicking the banner in email signatures. Leave empty to keep the current link.</p>
+      <p class="url-hint" data-i18n="urlHint"></p>
       <div class="validation-error" id="urlValidationError"></div>
     </div>
 
-    <button class="btn" id="uploadBtn" disabled>Upload Banner</button>
+    <button class="btn" id="uploadBtn" disabled data-i18n="uploadBtn"></button>
 
     <div class="status" id="status"></div>
   </div>
 
   <script>
+    const T = {
+      de: {
+        title: 'Signatur Banner Upload',
+        subtitle: 'Laden Sie ein neues Bannerbild f\u00FCr die E-Mail-Signatur der Marketingabteilung hoch.',
+        reqTitle: 'Bildanforderungen',
+        reqFormatLabel: 'Format:',
+        reqFormat: 'Nur PNG',
+        reqWidthLabel: 'Breite:',
+        reqWidth: '1500 \u2013 2000 Pixel',
+        reqHeightLabel: 'H\u00F6he:',
+        reqHeight: '1000 \u2013 1500 Pixel',
+        reqSizeLabel: 'Max. Dateigr\u00F6\u00DFe:',
+        reqSize: '10 MB',
+        reqIdeal: 'Ideale Ma\u00DFe: 1771 \u00D7 1250 px bei 300 DPI',
+        dropText: 'Klicken Sie, um eine PNG-Datei auszuw\u00E4hlen, oder ziehen Sie sie hierher',
+        urlLabel: 'Banner-Link-URL',
+        urlOptional: '(optional)',
+        urlHint: 'Die URL, die beim Klicken auf das Banner in der E-Mail-Signatur ge\u00F6ffnet wird. Leer lassen, um den aktuellen Link beizubehalten.',
+        uploadBtn: 'Banner hochladen',
+        logout: 'Abmelden',
+        errPngOnly: 'Nur PNG-Dateien werden akzeptiert.',
+        errTooLarge: 'Datei ist zu gro\u00DF ({size} MB). Maximal 10 MB.',
+        errWidth: 'Breite muss zwischen {min}\u2013{max} px liegen. Ihre: {val} px.',
+        errHeight: 'H\u00F6he muss zwischen {min}\u2013{max} px liegen. Ihre: {val} px.',
+        errInvalidPng: 'Bild konnte nicht gelesen werden. Stellen Sie sicher, dass es eine g\u00FCltige PNG-Datei ist.',
+        errUrlHttps: 'URL muss HTTPS verwenden.',
+        errUrlTooLong: 'URL ist zu lang (max. 2048 Zeichen).',
+        errUrlInvalid: 'Bitte geben Sie eine g\u00FCltige URL ein (z.\u00A0B. https://www.thefontenay.com/...).',
+        statusUploading: 'Wird hochgeladen und \u00FCbertragen\u2026',
+        statusNetError: 'Netzwerkfehler. Bitte pr\u00FCfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+        statusUploadFail: 'Upload fehlgeschlagen. Bitte versuchen Sie es erneut.'
+      },
+      en: {
+        title: 'Signature Banner Upload',
+        subtitle: 'Upload a new banner image for the Marketing Department email signature.',
+        reqTitle: 'Image Requirements',
+        reqFormatLabel: 'Format:',
+        reqFormat: 'PNG only',
+        reqWidthLabel: 'Width:',
+        reqWidth: '1500 \u2013 2000 pixels',
+        reqHeightLabel: 'Height:',
+        reqHeight: '1000 \u2013 1500 pixels',
+        reqSizeLabel: 'Max file size:',
+        reqSize: '10 MB',
+        reqIdeal: 'Ideal dimensions: 1771 \u00D7 1250 px at 300 DPI',
+        dropText: 'Click to select a PNG file or drag & drop it here',
+        urlLabel: 'Banner Link URL',
+        urlOptional: '(optional)',
+        urlHint: 'The URL opened when clicking the banner in email signatures. Leave empty to keep the current link.',
+        uploadBtn: 'Upload Banner',
+        logout: 'Logout',
+        errPngOnly: 'Only PNG files are accepted.',
+        errTooLarge: 'File is too large ({size} MB). Maximum is 10 MB.',
+        errWidth: 'Width must be {min}\u2013{max}px. Yours: {val}px.',
+        errHeight: 'Height must be {min}\u2013{max}px. Yours: {val}px.',
+        errInvalidPng: 'Could not read image. Ensure it is a valid PNG.',
+        errUrlHttps: 'URL must use HTTPS.',
+        errUrlTooLong: 'URL is too long (max 2048 characters).',
+        errUrlInvalid: 'Please enter a valid URL (e.g., https://www.thefontenay.com/...).',
+        statusUploading: 'Uploading and transferring\u2026',
+        statusNetError: 'Network error. Please check your connection and try again.',
+        statusUploadFail: 'Upload failed. Please try again.'
+      }
+    };
+
+    let currentLang = localStorage.getItem('lang') || 'de';
+
+    function t(key, replacements) {
+      let str = T[currentLang][key] || T.de[key] || key;
+      if (replacements) {
+        for (const [k, v] of Object.entries(replacements)) {
+          str = str.replace('{' + k + '}', v);
+        }
+      }
+      return str;
+    }
+
+    function applyLang(lang) {
+      currentLang = lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (T[lang][key]) el.textContent = T[lang][key];
+      });
+      document.getElementById('langDe').classList.toggle('active', lang === 'de');
+      document.getElementById('langEn').classList.toggle('active', lang === 'en');
+      document.title = T[lang].title;
+    }
+
+    function setLang(lang) {
+      localStorage.setItem('lang', lang);
+      applyLang(lang);
+    }
+
+    // DOM references
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
     const uploadBtn = document.getElementById('uploadBtn');
@@ -292,19 +434,16 @@
       statusEl.className = 'status';
       statusEl.style.display = 'none';
 
-      // Check file type
       if (!file.name.toLowerCase().endsWith('.png') || file.type !== 'image/png') {
-        validationError.textContent = 'Only PNG files are accepted.';
+        validationError.textContent = t('errPngOnly');
         return;
       }
 
-      // Check file size
       if (file.size > MAX_SIZE) {
-        validationError.textContent = `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is 10 MB.`;
+        validationError.textContent = t('errTooLarge', { size: (file.size / 1024 / 1024).toFixed(1) });
         return;
       }
 
-      // Check dimensions
       const url = URL.createObjectURL(file);
       const img = new Image();
       img.onload = () => {
@@ -313,24 +452,23 @@
         const h = img.naturalHeight;
 
         if (w < MIN_W || w > MAX_W) {
-          validationError.textContent = `Width must be ${MIN_W}\u2013${MAX_W}px. Yours: ${w}px.`;
+          validationError.textContent = t('errWidth', { min: MIN_W, max: MAX_W, val: w });
           return;
         }
         if (h < MIN_H || h > MAX_H) {
-          validationError.textContent = `Height must be ${MIN_H}\u2013${MAX_H}px. Yours: ${h}px.`;
+          validationError.textContent = t('errHeight', { min: MIN_H, max: MAX_H, val: h });
           return;
         }
 
-        // Valid - show preview
         selectedFile = file;
         previewImage.src = URL.createObjectURL(file);
-        previewInfo.textContent = `${w} \u00d7 ${h} px \u2014 ${(file.size / 1024).toFixed(0)} KB`;
+        previewInfo.textContent = `${w} \u00D7 ${h} px \u2014 ${(file.size / 1024).toFixed(0)} KB`;
         previewContainer.style.display = 'block';
         uploadBtn.disabled = false;
       };
       img.onerror = () => {
         URL.revokeObjectURL(url);
-        validationError.textContent = 'Could not read image. Ensure it is a valid PNG.';
+        validationError.textContent = t('errInvalidPng');
       };
       img.src = url;
     }
@@ -339,11 +477,11 @@
       if (!value) return null;
       try {
         const url = new URL(value);
-        if (url.protocol !== 'https:') return 'URL must use HTTPS.';
-        if (value.length > 2048) return 'URL is too long (max 2048 characters).';
+        if (url.protocol !== 'https:') return t('errUrlHttps');
+        if (value.length > 2048) return t('errUrlTooLong');
         return null;
       } catch {
-        return 'Please enter a valid URL (e.g., https://www.thefontenay.com/...).';
+        return t('errUrlInvalid');
       }
     }
 
@@ -364,7 +502,7 @@
 
       uploadBtn.disabled = true;
       statusEl.className = 'status loading';
-      statusEl.innerHTML = '<span class="spinner"></span> Uploading and transferring...';
+      statusEl.innerHTML = '<span class="spinner"></span> ' + t('statusUploading');
       statusEl.style.display = 'block';
 
       const formData = new FormData();
@@ -384,15 +522,18 @@
           bannerUrlInput.value = '';
         } else {
           statusEl.className = 'status error';
-          statusEl.textContent = data.error || 'Upload failed. Please try again.';
+          statusEl.textContent = data.error || t('statusUploadFail');
           uploadBtn.disabled = false;
         }
       } catch (err) {
         statusEl.className = 'status error';
-        statusEl.textContent = 'Network error. Please check your connection and try again.';
+        statusEl.textContent = t('statusNetError');
         uploadBtn.disabled = false;
       }
     });
+
+    // Apply saved language on load
+    applyLang(currentLang);
   </script>
 </body>
 </html>

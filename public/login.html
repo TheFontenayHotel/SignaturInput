@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signatur Banner</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .lang-toggle {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+      overflow: hidden;
+      font-size: 0.8rem;
+      z-index: 100;
+    }
+    .lang-toggle button {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #888;
+      transition: all 0.2s;
+    }
+    .lang-toggle button.active {
+      background: #1976d2;
+      color: #fff;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+      padding: 36px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.5rem;
+      color: #1a1a2e;
+      margin-bottom: 28px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #1976d2;
+      box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+    .btn:hover { background: #1565c0; }
+    .error-msg {
+      background: #fbe9e7;
+      border: 1px solid #ef9a9a;
+      color: #c62828;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="lang-toggle">
+    <button id="langDe" class="active" onclick="setLang('de')">DE</button>
+    <button id="langEn" onclick="setLang('en')">EN</button>
+  </div>
+
+  <div class="card">
+    <h1>Signatur Banner</h1>
+    <div class="error-msg" id="errorMsg" data-i18n="loginError"></div>
+    <form method="POST" action="/login">
+      <div class="form-group">
+        <label data-i18n="username"></label>
+        <input type="text" name="username" autocomplete="username" required autofocus>
+      </div>
+      <div class="form-group">
+        <label data-i18n="password"></label>
+        <input type="password" name="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn" data-i18n="loginBtn"></button>
+    </form>
+  </div>
+
+  <script>
+    const translations = {
+      de: {
+        username: 'Benutzername',
+        password: 'Passwort',
+        loginBtn: 'Anmelden',
+        loginError: 'Ung\u00FCltige Anmeldedaten. Bitte versuchen Sie es erneut.'
+      },
+      en: {
+        username: 'Username',
+        password: 'Password',
+        loginBtn: 'Login',
+        loginError: 'Invalid credentials. Please try again.'
+      }
+    };
+
+    function setLang(lang) {
+      localStorage.setItem('lang', lang);
+      applyLang(lang);
+    }
+
+    function applyLang(lang) {
+      const t = translations[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.textContent = t[key];
+      });
+      document.getElementById('langDe').classList.toggle('active', lang === 'de');
+      document.getElementById('langEn').classList.toggle('active', lang === 'en');
+    }
+
+    // Show error if redirected with ?error=1
+    if (new URLSearchParams(window.location.search).get('error')) {
+      document.getElementById('errorMsg').classList.add('show');
+    }
+
+    // Apply saved language or default to German
+    applyLang(localStorage.getItem('lang') || 'de');
+  </script>
+</body>
+</html>

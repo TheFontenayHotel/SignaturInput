@@ -3,7 +3,9 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const helmet = require('helmet');
+const session = require('express-session');
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 
@@ -47,8 +49,56 @@ app.use(helmet({
   }
 }));
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+// Parse form bodies for login
+app.use(express.urlencoded({ extended: false }));
+
+// Session management
+app.use(session({
+  secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 8 * 60 * 60 * 1000 } // 8 hours
+}));
+
+// Auth middleware
+function requireAuth(req, res, next) {
+  if (req.session && req.session.authenticated) return next();
+  res.redirect('/login');
+}
+
+// Login page (public)
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Login handler
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username === 'Sales' && password === 'Sales.2026') {
+    req.session.authenticated = true;
+    return res.redirect('/');
+  }
+  res.redirect('/login?error=1');
+});
+
+// Logout
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => res.redirect('/login'));
+});
+
+// Serve static assets without auth, but block direct access to index.html
+app.use((req, res, next) => {
+  if (req.path === '/index.html') return res.redirect('/');
+  next();
+});
+app.use(express.static(path.join(__dirname, 'public'), {
+  index: false
+}));
+
+// Protected main page
+app.get('/', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // Rate limit on upload endpoint
 const uploadLimiter = rateLimit({
@@ -70,7 +120,7 @@ function checkOrigin(req, res, next) {
 }
 
 // Upload route
-app.post('/upload', uploadLimiter, checkOrigin, (req, res, next) => {
+app.post('/upload', requireAuth, uploadLimiter, checkOrigin, (req, res, next) => {
   uploadMiddleware(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
