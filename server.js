@@ -48,10 +48,11 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "blob:", "data:"]
+      imgSrc: ["'self'", "blob:", "data:"],
+      upgradeInsecureRequests: null // no HTTPS on this server
     }
   },
-  strictTransportSecurity: false // no HTTPS on this server
+  strictTransportSecurity: false
 }));
 
 // Parse form bodies for login
