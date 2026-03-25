@@ -103,13 +103,6 @@
       display: inline-block;
       width: 16px;
     }
-    .disclaimer .ideal {
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px dashed #ffe082;
-      font-size: 0.85rem;
-      color: #666;
-    }
     .upload-area {
       border: 2px dashed #ccc;
       border-radius: 8px;
@@ -259,11 +252,8 @@
       <h2 data-i18n="reqTitle"></h2>
       <ul>
         <li><strong data-i18n="reqFormatLabel"></strong> <span data-i18n="reqFormat"></span></li>
-        <li><strong data-i18n="reqWidthLabel"></strong> <span data-i18n="reqWidth"></span></li>
-        <li><strong data-i18n="reqHeightLabel"></strong> <span data-i18n="reqHeight"></span></li>
         <li><strong data-i18n="reqSizeLabel"></strong> <span data-i18n="reqSize"></span></li>
       </ul>
-      <p class="ideal" data-i18n="reqIdeal"></p>
     </div>
 
     <div class="upload-area" id="dropZone">
@@ -298,13 +288,8 @@
         reqTitle: 'Bildanforderungen',
         reqFormatLabel: 'Format:',
         reqFormat: 'Nur PNG',
-        reqWidthLabel: 'Breite:',
-        reqWidth: '1500 \u2013 2000 Pixel',
-        reqHeightLabel: 'H\u00F6he:',
-        reqHeight: '1000 \u2013 1500 Pixel',
         reqSizeLabel: 'Max. Dateigr\u00F6\u00DFe:',
         reqSize: '10 MB',
-        reqIdeal: 'Ideale Ma\u00DFe: 1771 \u00D7 1250 px bei 300 DPI',
         dropText: 'Klicken Sie, um eine PNG-Datei auszuw\u00E4hlen, oder ziehen Sie sie hierher',
         urlLabel: 'Banner-Link-URL',
         urlOptional: '(optional)',
@@ -313,8 +298,6 @@
         logout: 'Abmelden',
         errPngOnly: 'Nur PNG-Dateien werden akzeptiert.',
         errTooLarge: 'Datei ist zu gro\u00DF ({size} MB). Maximal 10 MB.',
-        errWidth: 'Breite muss zwischen {min}\u2013{max} px liegen. Ihre: {val} px.',
-        errHeight: 'H\u00F6he muss zwischen {min}\u2013{max} px liegen. Ihre: {val} px.',
         errInvalidPng: 'Bild konnte nicht gelesen werden. Stellen Sie sicher, dass es eine g\u00FCltige PNG-Datei ist.',
         errUrlHttps: 'URL muss HTTPS verwenden.',
         errUrlTooLong: 'URL ist zu lang (max. 2048 Zeichen).',
@@ -329,13 +312,8 @@
         reqTitle: 'Image Requirements',
         reqFormatLabel: 'Format:',
         reqFormat: 'PNG only',
-        reqWidthLabel: 'Width:',
-        reqWidth: '1500 \u2013 2000 pixels',
-        reqHeightLabel: 'Height:',
-        reqHeight: '1000 \u2013 1500 pixels',
         reqSizeLabel: 'Max file size:',
         reqSize: '10 MB',
-        reqIdeal: 'Ideal dimensions: 1771 \u00D7 1250 px at 300 DPI',
         dropText: 'Click to select a PNG file or drag & drop it here',
         urlLabel: 'Banner Link URL',
         urlOptional: '(optional)',
@@ -344,8 +322,6 @@
         logout: 'Logout',
         errPngOnly: 'Only PNG files are accepted.',
         errTooLarge: 'File is too large ({size} MB). Maximum is 10 MB.',
-        errWidth: 'Width must be {min}\u2013{max}px. Yours: {val}px.',
-        errHeight: 'Height must be {min}\u2013{max}px. Yours: {val}px.',
         errInvalidPng: 'Could not read image. Ensure it is a valid PNG.',
         errUrlHttps: 'URL must use HTTPS.',
         errUrlTooLong: 'URL is too long (max 2048 characters).',
@@ -396,7 +372,6 @@
     const bannerUrlInput = document.getElementById('bannerUrl');
     const urlValidationError = document.getElementById('urlValidationError');
 
-    const MIN_W = 1500, MAX_W = 2000, MIN_H = 1000, MAX_H = 1500;
     const MAX_SIZE = 10 * 1024 * 1024;
 
     let selectedFile = null;
@@ -448,21 +423,9 @@
       const img = new Image();
       img.onload = () => {
         URL.revokeObjectURL(url);
-        const w = img.naturalWidth;
-        const h = img.naturalHeight;
-
-        if (w < MIN_W || w > MAX_W) {
-          validationError.textContent = t('errWidth', { min: MIN_W, max: MAX_W, val: w });
-          return;
-        }
-        if (h < MIN_H || h > MAX_H) {
-          validationError.textContent = t('errHeight', { min: MIN_H, max: MAX_H, val: h });
-          return;
-        }
-
         selectedFile = file;
         previewImage.src = URL.createObjectURL(file);
-        previewInfo.textContent = `${w} \u00D7 ${h} px \u2014 ${(file.size / 1024).toFixed(0)} KB`;
+        previewInfo.textContent = `${img.naturalWidth} \u00D7 ${img.naturalHeight} px \u2014 ${(file.size / 1024).toFixed(0)} KB`;
         previewContainer.style.display = 'block';
         uploadBtn.disabled = false;
       };
