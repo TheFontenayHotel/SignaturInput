@@ -9,7 +9,9 @@ const multer = require('multer');
 
 const uploadMiddleware = require('./middleware/upload');
 const sanitize = require('./middleware/sanitize');
+const validateUrl = require('./middleware/validateUrl');
 const { transfer } = require('./services/scp');
+const { transferLink } = require('./services/smb');
 
 // Validate required env vars
 const required = ['SSH_KEY_PATH', 'SSH_HOST', 'SSH_USER', 'SSH_REMOTE_PATH'];
@@ -84,13 +86,31 @@ app.post('/upload', uploadLimiter, checkOrigin, (req, res, next) => {
     }
     next();
   });
-}, sanitize, async (req, res) => {
+}, sanitize, validateUrl, async (req, res) => {
   const filePath = req.file.path;
   try {
     await transfer(filePath);
+
+    // Transfer banner link URL via SMB if provided
+    let linkMsg = '';
+    if (req.bannerUrl) {
+      try {
+        await transferLink(req.bannerUrl);
+        linkMsg = ' The banner link has also been updated.';
+      } catch (err) {
+        console.error('SMB link transfer error:', err.message);
+        // Banner uploaded OK but link failed — report partial success
+        return res.json({
+          success: true,
+          message: 'Banner uploaded successfully, but failed to update the link URL. Please contact IT.',
+          dimensions: req.imageInfo
+        });
+      }
+    }
+
     res.json({
       success: true,
-      message: 'Banner uploaded successfully! The signature image has been updated.',
+      message: 'Banner uploaded successfully! The signature image has been updated.' + linkMsg,
       dimensions: req.imageInfo
     });
   } catch (err) {

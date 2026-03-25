@@ -167,6 +167,39 @@
       font-size: 0.85rem;
       margin-top: 8px;
     }
+    .url-input-group {
+      margin-bottom: 16px;
+    }
+    .url-input-group label {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+    .url-input-group .optional {
+      font-weight: 400;
+      color: #999;
+      font-size: 0.85rem;
+    }
+    .url-input-group input[type="url"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+    .url-input-group input[type="url"]:focus {
+      outline: none;
+      border-color: #1976d2;
+      box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
+    }
+    .url-hint {
+      font-size: 0.82rem;
+      color: #888;
+      margin-top: 6px;
+    }
   </style>
 </head>
 <body>
@@ -197,6 +230,13 @@
       <p class="preview-info" id="previewInfo"></p>
     </div>
 
+    <div class="url-input-group">
+      <label for="bannerUrl">Banner Link URL <span class="optional">(optional)</span></label>
+      <input type="url" id="bannerUrl" placeholder="https://www.thefontenay.com/..." maxlength="2048">
+      <p class="url-hint">The URL opened when clicking the banner in email signatures. Leave empty to keep the current link.</p>
+      <div class="validation-error" id="urlValidationError"></div>
+    </div>
+
     <button class="btn" id="uploadBtn" disabled>Upload Banner</button>
 
     <div class="status" id="status"></div>
@@ -211,6 +251,8 @@
     const previewInfo = document.getElementById('previewInfo');
     const statusEl = document.getElementById('status');
     const validationError = document.getElementById('validationError');
+    const bannerUrlInput = document.getElementById('bannerUrl');
+    const urlValidationError = document.getElementById('urlValidationError');
 
     const MIN_W = 1500, MAX_W = 2000, MIN_H = 1000, MAX_H = 1500;
     const MAX_SIZE = 10 * 1024 * 1024;
@@ -293,8 +335,32 @@
       img.src = url;
     }
 
+    function validateBannerUrl(value) {
+      if (!value) return null;
+      try {
+        const url = new URL(value);
+        if (url.protocol !== 'https:') return 'URL must use HTTPS.';
+        if (value.length > 2048) return 'URL is too long (max 2048 characters).';
+        return null;
+      } catch {
+        return 'Please enter a valid URL (e.g., https://www.thefontenay.com/...).';
+      }
+    }
+
+    bannerUrlInput.addEventListener('input', () => {
+      const err = validateBannerUrl(bannerUrlInput.value.trim());
+      urlValidationError.textContent = err || '';
+    });
+
     uploadBtn.addEventListener('click', async () => {
       if (!selectedFile) return;
+
+      const urlValue = bannerUrlInput.value.trim();
+      const urlErr = validateBannerUrl(urlValue);
+      if (urlErr) {
+        urlValidationError.textContent = urlErr;
+        return;
+      }
 
       uploadBtn.disabled = true;
       statusEl.className = 'status loading';
@@ -303,6 +369,7 @@
 
       const formData = new FormData();
       formData.append('banner', selectedFile);
+      if (urlValue) formData.append('bannerUrl', urlValue);
 
       try {
         const res = await fetch('/upload', { method: 'POST', body: formData });
@@ -314,6 +381,7 @@
           selectedFile = null;
           previewContainer.style.display = 'none';
           fileInput.value = '';
+          bannerUrlInput.value = '';
         } else {
           statusEl.className = 'status error';
           statusEl.textContent = data.error || 'Upload failed. Please try again.';
